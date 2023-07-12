@@ -5,10 +5,16 @@
 
   let graphicParent;
 
+  let setNewTargets;
+
   const fps = writable(null);
 
+  const clickHandler = () => {
+    setNewTargets();
+  };
+
   onMount(() => {
-    initScene({ rootEl: graphicParent, fps });
+    setNewTargets = initScene({ rootEl: graphicParent, fps });
   });
 </script>
 
@@ -16,6 +22,7 @@
   {#if $fps}
     <span class="fps">FPS: {$fps}</span>
   {/if}
+  <button on:click={clickHandler}>change data</button>
 </div>
 
 <style>
@@ -25,6 +32,11 @@
     font-family: sans-serif;
     width: 100%;
     height: 100vh;
+  }
+
+  button {
+    position: absolute;
+    right: 0;
   }
 
   .fps {

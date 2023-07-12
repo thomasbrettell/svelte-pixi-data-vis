@@ -12,13 +12,21 @@ export const initScene = ({ rootEl, fps }) => {
 
   rootEl.appendChild(app.view);
 
+  const graphic = new PIXI.Graphics();
+  graphic.beginFill(0x0000ff);
+  graphic.drawRect(0, 0, 50, 50);
+  graphic.position.set(rootEl.clientWidth / 2, rootEl.clientHeight / 2);
+
   const c = new PIXI.Graphics();
   c.beginFill(0xffffff);
   c.drawCircle(0, 0, 5);
+  const circleTexture = app.renderer.generateTexture(c, {
+    resolution: window.devicePixelRatio * 2,
+    scaleMode: PIXI.SCALE_MODES.LINEAR
+  });
+  c.destroy();
 
-  const texture = app.renderer.generateTexture(c);
-
-  const CIRCLES_AMOUNT = 10000;
+  const CIRCLES_AMOUNT = 1000;
 
   const particles = new PIXI.ParticleContainer(CIRCLES_AMOUNT, {
     scale: true,
@@ -32,7 +40,7 @@ export const initScene = ({ rootEl, fps }) => {
   const circles = [];
 
   for (let i = 0; i < CIRCLES_AMOUNT; i++) {
-    const circle = new PIXI.Sprite(texture);
+    const circle = new PIXI.Sprite(circleTexture);
     circle.tint = tinycolor.random().toHexString();
 
     circle.anchor.set(0.5);
@@ -40,8 +48,8 @@ export const initScene = ({ rootEl, fps }) => {
     // circle.scale = 1;
 
     // scatter them all
-    circle.x = Math.random() * app.screen.width;
-    circle.y = Math.random() * app.screen.height;
+    circle.x = rootEl.clientWidth * Math.random();
+    circle.y = rootEl.clientHeight * Math.random();
 
     // create a random direction in radians
     circle.direction = Math.random() * Math.PI * 2;
@@ -59,105 +67,71 @@ export const initScene = ({ rootEl, fps }) => {
     particles.addChild(circle);
 
     circle.targets = {
-      x: { val: rootEl.clientWidth * Math.random(), p: 0 },
-      y: { val: rootEl.clientHeight * Math.random(), p: 0 },
-      scale: { val: Math.random() * 2, p: 0 },
-      alpha: { val: Math.random(), p: 0 }
+      x: { curr: circle.x, val: rootEl.clientWidth * Math.random(), p: 0 },
+      y: { curr: circle.y, val: rootEl.clientHeight * Math.random(), p: 0 },
+      scale: { curr: circle.scale.x, val: Math.random() * 2, p: 0 },
+      alpha: { curr: circle.alpha, val: 0, p: 0 }
     };
-
-    //     gsap.ticker.remove(gsap.updateRoot);
-
-    // // Update gsap with PIXI ticker.
-    // PIXI.ticker.shared.add( (deltaTime) => {
-    //   gsap.updateRoot(deltaTime );
-    // });
-
-    // gsap.to(circle, {
-    //   duration: 5,
-    //   repeat: -1,
-    //   pixi: circle.targets
-    // });
-
-    // const tl = gsap.timeline({
-    //   repeat: -1,
-    //   defaults: {
-    //     duration: 5
-    //   }
-    // });
-
-    // // tl.to(circle, {
-    // //   x: app.view.width * Math.random(),
-    // //   y: app.view.height * Math.random(),
-    // //   alpha: Math.random()
-    // // });
-
-    // gsap.to(circle.scale, {
-    //   x: scale,
-    //   y: scale
-    // });
   }
 
-  // for (let i = 0; i < 10000; i++) {
-  //   const length = app.view.width * Math.random();
+  graphic.pivot.set(graphic.width / 2, graphic.height / 2);
+  app.stage.addChild(graphic);
 
-  //   const circle = new PIXI.Graphics(circleGeometry);
-  //   circle.tint = 0xff0000;
+  function lerp(x, y, t) {
+    return (1 - t) * x + t * y;
+  }
 
-  //   app.stage.addChild(circle);
+  const TWEEN_DURATION = 5000;
 
-  //   const tl = gsap.timeline({
-  //     repeat: -1,
-  //     delay: 10 * Math.random()
-  //   });
+  const tweenValue = (target, ms, currentValue) => {
+    if (target.p >= 1) return currentValue;
+    target.p += ms / TWEEN_DURATION;
 
-  //   tl.to(circle, {
-  //     x: length,
-  //     y: length,
-  //     duration: 3,
-  //     alpha: 0
-  //   });
-
-  //   tl.to(circle, {
-  //     x: 0,
-  //     y: length,
-  //     duration: 3
-  //   });
-
-  //   tl.to(circle, {
-  //     x: length,
-  //     y: 0,
-  //     duration: 3
-  //   });
-
-  //   tl.to(circle, {
-  //     x: 0,
-  //     y: 0,
-  //     duration: 3,
-  //     alpha: 1
-  //   });
-  // }
-
-  const lerp = (a, b, n) => {
-    return (1 - n) * a + n * b;
+    return lerp(target.curr, target.val, target.p);
   };
 
-  let p = 0;
-
-  app.ticker.add(dt => {
-    // p += dt * 0.001;
+  app.ticker.add(() => {
+    graphic.rotation += 0.01;
 
     for (let i = 0; i < circles.length; i++) {
       const circle = circles[i];
 
-      circle.x = lerp(circle.x, circle.targets.x.val, 0.01);
-      circle.y = lerp(circle.y, circle.targets.y.val, 0.01);
+      circle.x = tweenValue(circle.targets.x, app.ticker.elapsedMS, circle.x);
+      circle.y = tweenValue(circle.targets.y, app.ticker.elapsedMS, circle.y);
 
-      const scale = lerp(circle.scale.x, circle.targets.scale.val, 0.01);
-      circle.scale.set(scale, scale);
+      circle.alpha = tweenValue(circle.targets.alpha, app.ticker.elapsedMS, circle.alpha);
 
-      circle.alpha = lerp(circle.alpha, circle.targets.alpha.val, 0.01);
+      circle.scale.set(tweenValue(circle.targets.scale, app.ticker.elapsedMS, circle.scale.x));
     }
 
-    fps.set(app.ticker.FPS);
+    fps.set(Math.round(app.ticker.FPS));
   });
+
+  const setNewTargets = () => {
+    for (let i = 0; i < circles.length; i++) {
+      const circle = circles[i];
+
+      circle.targets.x.p = 1;
+      circle.targets.y.p = 1;
+      circle.targets.scale.p = 1;
+      circle.targets.alpha.p = 1;
+
+      circle.targets.x.curr = circle.x;
+      circle.targets.y.curr = circle.y;
+      circle.targets.scale.curr = circle.scale.x;
+      circle.targets.alpha.curr = circle.alpha;
+
+      circle.targets.x.val = rootEl.clientWidth * Math.random();
+      circle.targets.y.val = rootEl.clientHeight * Math.random();
+      circle.targets.scale.val = Math.random() * 2;
+      circle.targets.alpha.val = 1;
+
+      circle.targets.x.p = 0;
+      circle.targets.y.p = 0;
+      circle.targets.scale.p = 0;
+      circle.targets.alpha.p = 0;
+    }
+  };
+
+  return setNewTargets;
 };
