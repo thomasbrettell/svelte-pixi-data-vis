@@ -122,9 +122,10 @@ export const initScene = ({ rootEl, fps }) => {
 
       circle.scale.set(tweenValue(circle.targets.scale, app.ticker.elapsedMS, circle.scale.x));
 
-      circle.tint = tweenValue(circle.targets.tint, app.ticker.elapsedMS, circle.tint, {
-        color: true
-      });
+      // ANIMATING COLOUR DEFS HAS PERFORMANCE DOWN SIDES
+      // circle.tint = tweenValue(circle.targets.tint, app.ticker.elapsedMS, circle.tint, {
+      //   color: true
+      // });
     }
 
     fps.set(Math.round(app.ticker.FPS));
