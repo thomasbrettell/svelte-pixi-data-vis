@@ -99,8 +99,10 @@ export const initScene = ({ rootEl, fps }) => {
 
       if (newColor) {
         circle.targets.tint.val = newColor;
+        // circle.tint = newColor; // update but dont animate
       } else {
         circle.targets.tint.val = tinycolor.random().toHexString();
+        // circle.tint = tinycolor.random().toHexString(); // update but dont animate
       }
 
       circle.targets.x.p = 0;
@@ -123,9 +125,9 @@ export const initScene = ({ rootEl, fps }) => {
       circle.scale.set(tweenValue(circle.targets.scale, app.ticker.elapsedMS, circle.scale.x));
 
       // ANIMATING COLOUR DEFS HAS PERFORMANCE DOWN SIDES
-      // circle.tint = tweenValue(circle.targets.tint, app.ticker.elapsedMS, circle.tint, {
-      //   color: true
-      // });
+      circle.tint = tweenValue(circle.targets.tint, app.ticker.elapsedMS, circle.tint, {
+        color: true
+      });
     }
 
     fps.set(Math.round(app.ticker.FPS));
