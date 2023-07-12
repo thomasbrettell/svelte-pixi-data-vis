@@ -95,7 +95,7 @@ export const initScene = ({ rootEl, fps }) => {
       circle.targets.x.val = rootEl.clientWidth * Math.random();
       circle.targets.y.val = rootEl.clientHeight * Math.random();
       circle.targets.scale.val = Math.random() * 2;
-      circle.targets.alpha.val = 1;
+      circle.targets.alpha.val = Math.random();
 
       if (newColor) {
         circle.targets.tint.val = newColor;
