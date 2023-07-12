@@ -59,14 +59,24 @@ export const initScene = ({ rootEl, fps }) => {
     particles.addChild(circle);
 
     circle.targets = {
-      x: { curr: circle.x, val: rootEl.clientWidth * Math.random(), p: 0 },
-      y: { curr: circle.y, val: rootEl.clientHeight * Math.random(), p: 0 },
-      scale: { curr: circle.scale.x, val: Math.random() * 2, p: 0 },
-      alpha: { curr: circle.alpha, val: 0, p: 0 }
+      x: { curr: circle.x, val: null, p: 0 },
+      y: { curr: circle.y, val: null, p: 0 },
+      scale: { curr: circle.scale.x, val: null, p: 0 },
+      alpha: { curr: circle.alpha, val: null, p: 0 },
+      tint: {
+        curr: circle.tint,
+        val: null,
+        p: 0
+      }
     };
   }
 
   const setNewTargets = () => {
+    let newColor;
+    if (Math.random() < 0.5) {
+      newColor = tinycolor.random().toHexString();
+    }
+
     for (let i = 0; i < circles.length; i++) {
       const circle = circles[i];
 
@@ -74,21 +84,30 @@ export const initScene = ({ rootEl, fps }) => {
       circle.targets.y.p = 1;
       circle.targets.scale.p = 1;
       circle.targets.alpha.p = 1;
+      circle.targets.tint.p = 1;
 
       circle.targets.x.curr = circle.x;
       circle.targets.y.curr = circle.y;
       circle.targets.scale.curr = circle.scale.x;
       circle.targets.alpha.curr = circle.alpha;
+      circle.targets.tint.curr = circle.tint;
 
       circle.targets.x.val = rootEl.clientWidth * Math.random();
       circle.targets.y.val = rootEl.clientHeight * Math.random();
       circle.targets.scale.val = Math.random() * 2;
       circle.targets.alpha.val = 1;
 
+      if (newColor) {
+        circle.targets.tint.val = newColor;
+      } else {
+        circle.targets.tint.val = tinycolor.random().toHexString();
+      }
+
       circle.targets.x.p = 0;
       circle.targets.y.p = 0;
       circle.targets.scale.p = 0;
       circle.targets.alpha.p = 0;
+      circle.targets.tint.p = 0;
     }
   };
 
@@ -102,6 +121,10 @@ export const initScene = ({ rootEl, fps }) => {
       circle.alpha = tweenValue(circle.targets.alpha, app.ticker.elapsedMS, circle.alpha);
 
       circle.scale.set(tweenValue(circle.targets.scale, app.ticker.elapsedMS, circle.scale.x));
+
+      circle.tint = tweenValue(circle.targets.tint, app.ticker.elapsedMS, circle.tint, {
+        color: true
+      });
     }
 
     fps.set(Math.round(app.ticker.FPS));

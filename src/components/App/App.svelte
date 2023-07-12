@@ -4,6 +4,7 @@
   import { initScene } from './Scene';
   import Scroller from '../Scrolly.svelte';
   import Panel from '../Panel.svelte';
+  import { DATA_AMOUNT } from '../../constants';
 
   let index = null;
   let prevIndex = null;
@@ -31,7 +32,10 @@
   <div slot="background">
     <div class="graphic-container" bind:this={graphicParent}>
       {#if $fps}
-        <span class="fps">FPS: {$fps}</span>
+        <span class="fps"
+          >FPS: {$fps}<br />
+          Data amount: {DATA_AMOUNT}
+        </span>
       {/if}
     </div>
   </div>
